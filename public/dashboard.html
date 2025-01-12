@@ -77,6 +77,36 @@
         .logout-btn:hover {
             background-color: #c82333;
         }
+        .algorithm-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .info-card {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .diagram {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            padding: 10px;
+            background: #fff;
+            border: 1px solid #ddd;
+        }
+        
+        .steps-list {
+            padding-left: 20px;
+        }
+        
+        .steps-list li {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -97,45 +127,135 @@
         </div>
 
         <div class="algorithm-section">
-            <h2>AES Encryption Details</h2>
-            <div class="algorithm-details">
-                <h3>AES-256-CBC Implementation</h3>
-                <p>This system uses AES (Advanced Encryption Standard) with the following specifications:</p>
-                <ul>
-                    <li>Key Size: 256 bits</li>
-                    <li>Mode of Operation: CBC (Cipher Block Chaining)</li>
-                    <li>IV Length: 16 bytes</li>
-                    <li>Key Generation: Cryptographically secure random bytes</li>
-                </ul>
-
-                <h3>Encryption Process</h3>
-                <div class="code-block">
-                    <pre>
-function encrypt(text) {
-    const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv('aes-256-cbc', ENCRYPTION_KEY, iv);
-    let encrypted = cipher.update(text, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    return `${iv.toString('hex')}:${encrypted}`;
-}</pre>
+            <h2>Advanced Encryption Standard (AES) - Technical Details</h2>
+            
+            <div class="algorithm-grid">
+                <div class="info-card">
+                    <h3>Core Specifications</h3>
+                    <ul>
+                        <li>Algorithm: AES (Rijndael)</li>
+                        <li>Key Size: 256 bits (32 bytes)</li>
+                        <li>Block Size: 128 bits (16 bytes)</li>
+                        <li>Rounds: 14 (AES-256)</li>
+                        <li>Mode: CBC (Cipher Block Chaining)</li>
+                        <li>Padding: PKCS7</li>
+                        <li>IV Size: 128 bits (16 bytes)</li>
+                    </ul>
                 </div>
-
-                <h3>Decryption Process</h3>
-                <div class="code-block">
-                    <pre>
-function decrypt(text) {
-    const [iv, encryptedText] = text.split(':');
-    const decipher = crypto.createDecipheriv(
-        'aes-256-cbc',
-        ENCRYPTION_KEY,
-        Buffer.from(iv, 'hex')
-    );
-    let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    return decrypted;
-}</pre>
+    
+                <div class="info-card">
+                    <h3>CBC Mode Operation</h3>
+                    <p>Cipher Block Chaining (CBC) mode:</p>
+                    <ul>
+                        <li>Each block is XORed with previous ciphertext block</li>
+                        <li>First block uses IV (Initialization Vector)</li>
+                        <li>Provides better security through chaining</li>
+                        <li>Changes in one block affect all subsequent blocks</li>
+                    </ul>
                 </div>
             </div>
+    
+            <div class="algorithm-details">
+                <h3>Implementation Details</h3>
+                
+                <div class="info-card">
+                    <h4>Key Generation Process</h4>
+                    <div class="code-block">
+                        <pre>
+    // Generate random encryption key
+    const ENCRYPTION_KEY = crypto.randomBytes(32); // 256 bits
+    const IV_LENGTH = 16; // 128 bits
+    
+    // Store key securely
+    const ENCRYPTION_KEY_FILE = 'encryption_key.txt';
+    fs.writeFileSync(ENCRYPTION_KEY_FILE, ENCRYPTION_KEY.toString('hex'));</pre>
+                    </div>
+                </div>
+    
+                <div class="info-card">
+                    <h4>Complete Encryption Process</h4>
+                    <div class="code-block">
+                        <pre>
+    function encrypt(text) {
+        // Generate random IV for each encryption
+        const iv = crypto.randomBytes(IV_LENGTH);
+        
+        // Create cipher with AES-256-CBC
+        const cipher = crypto.createCipheriv('aes-256-cbc', ENCRYPTION_KEY, iv);
+        
+        // Encrypt the data
+        let encrypted = cipher.update(text, 'utf8', 'hex');
+        encrypted += cipher.final('hex');
+        
+        // Combine IV and encrypted data
+        return `${iv.toString('hex')}:${encrypted}`;
+    }</pre>
+                    </div>
+                </div>
+    
+                <div class="info-card">
+                    <h4>Complete Decryption Process</h4>
+                    <div class="code-block">
+                        <pre>
+    function decrypt(text) {
+        try {
+            // Split IV and encrypted data
+            const [iv, encryptedText] = text.split(':');
+            if (!iv || !encryptedText) throw new Error('Invalid data format');
+    
+            // Create decipher
+            const decipher = crypto.createDecipheriv(
+                'aes-256-cbc',
+                ENCRYPTION_KEY,
+                Buffer.from(iv, 'hex')
+            );
+    
+            // Decrypt the data
+            let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
+            decrypted += decipher.final('utf8');
+            return decrypted;
+        } catch (error) {
+            console.error('Decryption error:', error.message);
+            throw new Error('Decryption failed');
+        }
+    }</pre>
+                    </div>
+                </div>
+    
+                <div class="info-card">
+                    <h4>AES Round Transformation Steps</h4>
+                    <ol class="steps-list">
+                        <li><strong>SubBytes Transformation:</strong> Non-linear substitution using S-box</li>
+                        <li><strong>ShiftRows Transformation:</strong> Cyclic shifting of rows</li>
+                        <li><strong>MixColumns Transformation:</strong> Linear mixing operation on columns</li>
+                        <li><strong>AddRoundKey:</strong> XOR with round key</li>
+                    </ol>
+                </div>
+    
+                <div class="info-card">
+                    <h4>Security Considerations</h4>
+                    <ul class="steps-list">
+                        <li><strong>Key Storage:</strong> Encryption key stored securely in separate file</li>
+                        <li><strong>Unique IV:</strong> New random IV generated for each encryption</li>
+                        <li><strong>Error Handling:</strong> Secure error messages to prevent information leakage</li>
+                        <li><strong>Memory Management:</strong> Sensitive data cleared from memory after use</li>
+                    </ul>
+                </div>
+    
+                <div class="info-card">
+                    <h4>Advantages of Implementation</h4>
+                    <ul class="steps-list">
+                        <li>Strong encryption with 256-bit key size</li>
+                        <li>CBC mode provides better security through block chaining</li>
+                        <li>Random IV prevents identical plaintexts from producing identical ciphertexts</li>
+                        <li>Built-in error handling and validation</li>
+                        <li>Uses Node.js's native crypto module for optimal performance</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+            
         </div>
     </div>
 
