@@ -41,13 +41,28 @@ document.getElementById('loginForm').addEventListener('submit', async function (
         });
 
         const result = await response.json();
-        if (result.encryptedName && result.encryptedEmail) {
-            document.getElementById('message').innerText = `
-                Login Successful!
-                Name: ${result.encryptedName}
-                Email: ${result.encryptedEmail}`;
+        
+        if (response.ok) {
+            // Store user data in sessionStorage for dashboard
+            sessionStorage.setItem('userData', JSON.stringify({
+                name: result.name,
+                email: result.email,
+                phone: result.phone
+            }));
+            
+            // Show success message
+            document.getElementById('message').innerText = 'Login Successful! Redirecting...';
+            
+            // Redirect to dashboard page
+            setTimeout(() => {
+                window.location.href = '/dashboard.html';
+            }, 1000);
+        } else {
+            // Show error message
+            document.getElementById('message').innerText = result.message || 'Login Failed!';
         }
     } catch (error) {
-        document.getElementById('message').innerText = 'Login Failed!';
+        console.error('Login error:', error);
+        document.getElementById('message').innerText = 'Login Failed! Please try again.';
     }
 });

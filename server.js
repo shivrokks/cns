@@ -117,6 +117,21 @@ app.post('/signup', (req, res) => {
     }
 });
 
+app.get('/getUserData', (req, res) => {
+    try {
+        const users = loadData();
+        const decryptedUsers = users.map(user => ({
+            name: decrypt(user.name),
+            email: decrypt(user.email),
+            phone: decrypt(user.phone),
+            password: user.password // Keep encrypted for security
+        }));
+        res.json(decryptedUsers);
+    } catch (error) {
+        console.error('Error fetching user data:', error);
+        res.status(500).json({ message: 'Failed to fetch user data' });
+    }
+});
 
 // Login Route
 app.post('/login', (req, res) => {
@@ -127,8 +142,6 @@ app.post('/login', (req, res) => {
     }
 
     const users = loadData();
-
-    // Find the user by email or phone
     const user = users.find(
         (u) => (email && decrypt(u.email) === email) || (phone && decrypt(u.phone) === phone)
     );
@@ -138,27 +151,24 @@ app.post('/login', (req, res) => {
     }
 
     try {
-        // Validate the password
         if (decrypt(user.password) === password) {
-            // Decrypt name and email before sending the response
-            const decryptedName = decrypt(user.name);
-            const decryptedEmail = decrypt(user.email);
-            const decryptedPhone = decrypt(user.phone);
-            console.log(decryptedName);
-            console.log(decryptedEmail);
-            console.log(decryptedPhone);
-
-            return res.json({
+            const userData = {
+                name: decrypt(user.name),
+                email: decrypt(user.email),
+                phone: decrypt(user.phone)
+            };
+            
+            res.json({
                 message: 'Login Successful!',
-                name: decryptedName,
-                email: decryptedEmail,
+                ...userData
             });
+        } else {
+            res.status(401).json({ message: 'Invalid credentials!' });
         }
     } catch (error) {
         console.error('Error during login:', error.message);
+        res.status(500).json({ message: 'Login failed due to server error' });
     }
-
-    res.status(401).json({ message: 'Invalid credentials!' });
 });
 
 // console.log('Encrypted data:', encryptedData);
